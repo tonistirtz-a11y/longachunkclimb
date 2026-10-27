@@ -1,0 +1,499 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Chunk Climb • Long A Express</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&family=Lexend:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --sky:#dff3ff; --sky2:#fff6df; --ink:#1d2a3a; --muted:#5b6b7c;
+  --red:#e8505b; --orange:#ff9f43; --yellow:#ffd23f; --green:#2ec27e; --teal:#14b8a6;
+  --blue:#3b82f6; --purple:#8b5cf6; --card:#ffffff; --line:#cfdbe6;
+  --word:"Comic Neue", "Comic Sans MS", Arial, Helvetica, sans-serif;
+  --ui:"Lexend", Arial, Helvetica, sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{min-height:100vh;background-attachment:fixed}
+body{font-family:var(--ui);color:var(--ink);background:linear-gradient(180deg,var(--sky) 0%,var(--sky2) 100%);
+  -webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;overflow-x:hidden}
+button{font-family:var(--ui);cursor:pointer;border:none;touch-action:manipulation}
+.word{font-family:var(--word);font-weight:700}
+
+/* ---------- top bar ---------- */
+.kit-bar{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:8px;padding:8px 12px;
+  background:#1d2a3a;color:#fff;box-shadow:0 3px 0 rgba(0,0,0,.15)}
+.kit-title{font-weight:700;font-size:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0}
+.kit-goal{display:flex;gap:4px;flex-wrap:wrap;max-width:40vw}
+.kit-goal i{width:12px;height:12px;border-radius:50%;background:#3a4b5e;display:block;transition:.3s}
+.kit-goal i.on{background:var(--yellow);box-shadow:0 0 6px var(--yellow)}
+.kit-coins{background:#2f4055;border-radius:20px;padding:4px 12px;font-weight:700;white-space:nowrap}
+.kit-streak{font-weight:700;color:var(--orange);min-width:44px;text-align:center}
+.kit-btn{background:#2f4055;color:#fff;border-radius:12px;height:40px;min-width:40px;padding:0 10px;font-size:18px}
+.kit-btn:active{transform:scale(.94)}
+.kit-pace{height:8px;background:#2f4055;position:relative;overflow:hidden}
+.kit-pace b{position:absolute;left:0;top:0;bottom:0;width:100%;background:linear-gradient(90deg,var(--green),var(--yellow),var(--red));transform-origin:left}
+.kit-pace .rival{position:absolute;top:-2px;font-size:14px;transform:translateX(-50%)}
+
+/* ---------- shared pieces ---------- */
+.wrap{max-width:980px;margin:0 auto;padding:14px 14px 40px}
+.card{background:var(--card);border-radius:22px;box-shadow:0 6px 0 rgba(29,42,58,.10);padding:16px}
+.big-btn{background:var(--blue);color:#fff;font-size:24px;font-weight:700;border-radius:18px;padding:14px 26px;
+  box-shadow:0 5px 0 #1f5fcf}
+.big-btn:active{transform:translateY(3px);box-shadow:0 2px 0 #1f5fcf}
+.big-btn.green{background:var(--green);box-shadow:0 5px 0 #1e9a62}
+.big-btn.orange{background:var(--orange);box-shadow:0 5px 0 #d97c1f}
+.big-btn.red{background:var(--red);box-shadow:0 5px 0 #b83640}
+.big-btn.ghost{background:#fff;color:var(--ink);box-shadow:0 5px 0 var(--line)}
+.prompt{font-size:22px;text-align:center;margin:6px 0 12px;font-weight:600}
+.say-btn{background:var(--yellow);color:var(--ink);border-radius:50%;width:48px;height:48px;font-size:22px;
+  box-shadow:0 4px 0 #d6a91c;vertical-align:middle}
+.shake{animation:shake .4s}
+@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-10px)}40%,80%{transform:translateX(10px)}}
+.pop{animation:pop .35s}
+@keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.18)}100%{transform:scale(1)}}
+.hint{background:#fff3c4;border:3px solid var(--yellow);border-radius:16px;padding:10px 14px;font-size:19px;
+  margin:10px auto;max-width:640px;text-align:center}
+.float-coin{position:fixed;z-index:60;font-weight:800;font-size:26px;color:#b7791f;pointer-events:none;
+  animation:floatup 1s ease-out forwards;text-shadow:0 2px 0 #fff}
+@keyframes floatup{to{transform:translateY(-70px);opacity:0}}
+
+/* ---------- overlays ---------- */
+.kit-ov{position:fixed;inset:0;z-index:50;background:rgba(29,42,58,.72);display:none;align-items:center;justify-content:center;padding:16px}
+.kit-ov.show{display:flex}
+.kit-panel{background:#fff;border-radius:26px;max-width:620px;width:100%;padding:22px;text-align:center;max-height:92vh;overflow:auto}
+.kit-panel h2{margin:4px 0 10px;font-size:30px}
+.kit-panel p{font-size:20px;line-height:1.45;margin:8px 0}
+.bb-emoji{font-size:90px;line-height:1.1}
+.bb-ring{width:120px;height:120px;margin:10px auto;position:relative}
+.bb-ring svg{transform:rotate(-90deg)}
+.bb-ring span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:36px;font-weight:800}
+.steam{width:110px;height:110px;border-radius:50%;background:radial-gradient(circle,#fff,#bfe6ff);margin:10px auto;
+  box-shadow:0 0 0 6px #e3f4ff;animation:breathe 8s ease-in-out infinite}
+@keyframes breathe{0%,100%{transform:scale(.6)}50%{transform:scale(1.15)}}
+.crate{font-size:110px;cursor:pointer;display:inline-block;animation:wobble 1s infinite}
+@keyframes wobble{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(6deg)}}
+.stickers{font-size:30px;letter-spacing:4px;line-height:1.5;word-break:break-all}
+.set-row{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:10px 0;font-size:18px;text-align:left}
+.set-row select{font-size:18px;padding:6px;border-radius:10px;border:2px solid var(--line);font-family:var(--ui)}
+.kit-panel textarea{width:100%;min-height:180px;font-family:ui-monospace,Menlo,monospace;font-size:15px;border:2px solid var(--line);border-radius:12px;padding:10px}
+.small{font-size:15px!important;color:var(--muted)}
+.confetti{position:fixed;top:-20px;z-index:70;font-size:24px;pointer-events:none;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(540deg)}}
+@media (prefers-reduced-motion: reduce){*{animation-duration:.01s!important;transition:none!important}}
+@media (max-width:560px){.kit-title{font-size:15px}.kit-goal{display:none}.big-btn{font-size:20px;padding:12px 18px}}
+
+</style>
+</head><body>
+<style>
+.climb{display:grid;grid-template-columns:150px 1fr;gap:16px;align-items:stretch}
+.tower{position:relative;background:linear-gradient(#bfe8ff,#eaf7ff);border-radius:22px;min-height:380px;overflow:hidden}
+.ladder{position:absolute;left:40px;right:40px;top:60px;bottom:16px;border-left:8px solid #8a5a2b;border-right:8px solid #8a5a2b;display:flex;flex-direction:column;justify-content:space-between}
+.ladder i{display:block;height:8px;background:#8a5a2b;border-radius:4px}
+.ladder i.lit{background:var(--yellow);box-shadow:0 0 8px var(--yellow)}
+.climber{position:absolute;left:50%;font-size:46px;transform:translateX(-50%);transition:bottom .45s cubic-bezier(.3,1.6,.5,1);z-index:2}
+.flag{position:absolute;top:8px;left:50%;transform:translateX(-50%);font-size:38px}
+.rungs{display:flex;flex-direction:column;gap:8px;justify-content:flex-end}
+.rung{font-size:40px;background:#fff;border-radius:16px;padding:8px 18px;box-shadow:0 4px 0 var(--line);opacity:.25;transition:.3s;letter-spacing:.06em;word-spacing:.45em}
+.rung.now{opacity:1;outline:5px solid var(--yellow)}
+.rung.read{opacity:1;background:#e7fbf1}
+.rung.whole{font-size:52px;letter-spacing:0;word-spacing:0;border-top:3px dashed var(--line)}
+.ctl{text-align:center;margin-top:14px}
+.bonus{display:none;text-align:center}
+.chips{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin:12px 0}
+.chip{font-size:38px;background:var(--purple);color:#fff;border-radius:18px;padding:10px 20px;box-shadow:0 5px 0 #6a3fd4}
+.chip.used{visibility:hidden}
+.built{font-size:46px;min-height:62px;letter-spacing:.04em}
+@media (max-width:560px){.climb{grid-template-columns:90px 1fr}.rung{font-size:28px}.rung.whole{font-size:36px}.ladder{left:18px;right:18px}}
+</style>
+
+<div class="wrap">
+  <div class="card">
+    <div class="climb">
+      <div class="tower"><div class="flag">🚩</div><div class="ladder" id="ladder"></div><div class="climber" id="climber">🧗</div></div>
+      <div class="rungs" id="rungs"></div>
+    </div>
+    <div class="ctl" id="ctl"><button class="big-btn green" id="readBtn">I read it! ⬆</button>
+      <p class="small">Read the glowing rung out loud, then tap. (Space bar works too.)</p></div>
+    <div class="bonus" id="bonus">
+      <p class="prompt">⚡ Bonus! Tap the chunks in order to build <b>the word</b>.</p>
+      <div class="built word" id="built"></div><div class="chips" id="chips"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* Long A Express game kit: sound, speech, coins, streaks, goals, pace timer, brain breaks, crates, settings. */
+const Kit = (() => {
+  const BANK = 'longA_bank', STICK = 'longA_stickers', MUTE = 'longA_muted';
+  const STICKERS = ['🚂','🚃','🚋','🚞','🚅','🛤️','🚦','🎫','⛽','🏔️','🌉','🧳','🎒','⭐','🌈','🍩','🦊','🐢','🦄','🐙','🦖','🚀','🎈','🍕','🐝','🌻','🍉','🏆','💎','🎸'];
+  const BREAKS = [
+    {e:'🚂', t:'Train Arms!', d:'Chug your arms like train wheels. Count 15 chugs!'},
+    {e:'🦘', t:'Track Hops', d:'Hop over pretend train tracks. 10 hops!'},
+    {e:'🗿', t:'Freeze Statue', d:'Freeze! Be a statue until the timer ends. Not even a wiggle!'},
+    {e:'🌬️', t:'Steam Breaths', d:'Breathe in while the steam cloud grows. Breathe out while it shrinks.', steam:true},
+    {e:'🙆', t:'Smokestack Stretch', d:'Reach up tall like a smokestack, then touch your toes. 5 times!'},
+    {e:'🥁', t:'Knee Drums', d:'Drum on your knees: fast, slow, FAST, slow!'},
+    {e:'🐛', t:'Wiggle Wagon', d:'Wiggle everything: arms, legs, shoulders, even your nose!'},
+    {e:'👀', t:'Window Spy', d:'Look around the room. Find 3 things that are blue!'},
+    {e:'✋', t:'Push the Engine', d:'Press your palms together hard for 5 seconds, then relax. Do it 3 times.'},
+    {e:'🦩', t:'Flamingo Stand', d:'Stand on one foot. Switch feet when the timer is halfway!'},
+    {e:'📣', t:'Train Horn', d:'Say "AY-AY-AY!" like a train horn, 5 times. That is the long a sound!'},
+    {e:'🤸', t:'Star Jumps', d:'Do 10 star jumps. Arms and legs out wide!'},
+    {e:'🐢', t:'Slow Motion', d:'Walk in place in super slow motion, like a sleepy turtle.'},
+    {e:'🫧', t:'Shake It Off', d:'Shake your hands, then your arms, then your whole body!'}
+  ];
+  const LS = {
+    get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+  };
+  let cfg = {}, S = {}, muted = false, ac = null, session = 0, done = 0, streak = 0, paceT = null, paceRaf = null, bbTimer = null;
+  const $ = (s, r = document) => r.querySelector(s);
+  const el = (tag, attrs = {}, html = '') => { const n = document.createElement(tag); Object.assign(n, attrs); if (html) n.innerHTML = html; return n; };
+
+  /* ---------------- audio ---------------- */
+  function audio() {
+    if (!ac) { try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} }
+    if (ac && ac.state === 'suspended') ac.resume();
+    return ac;
+  }
+  function tone(freq, dur, type = 'sine', vol = 0.18, when = 0, slide = 0) {
+    const a = audio(); if (!a || muted) return;
+    const t = a.currentTime + when, o = a.createOscillator(), g = a.createGain();
+    o.type = type; o.frequency.setValueAtTime(freq, t);
+    if (slide) o.frequency.exponentialRampToValueAtTime(Math.max(40, freq + slide), t + dur);
+    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    o.connect(g); g.connect(a.destination); o.start(t); o.stop(t + dur + 0.02);
+  }
+  const SFX = {
+    good() { tone(660, .12, 'triangle'); tone(880, .16, 'triangle', .18, .1); },
+    bad() { tone(220, .25, 'sawtooth', .08, 0, -80); },
+    click() { tone(500, .05, 'square', .06); },
+    coin() { tone(988, .07, 'square', .08); tone(1319, .18, 'square', .08, .07); },
+    whoosh() { tone(300, .35, 'sine', .08, 0, 600); },
+    horn() { tone(392, .45, 'sawtooth', .07); tone(494, .45, 'sawtooth', .06); },
+    win() { [523, 659, 784, 1047].forEach((f, i) => tone(f, .22, 'triangle', .16, i * .12)); },
+    tick() { tone(1200, .03, 'square', .05); },
+    chime() { tone(784, .4, 'sine', .15); tone(1175, .5, 'sine', .1, .15); },
+    level() { [392, 523, 659].forEach((f, i) => tone(f, .15, 'square', .07, i * .09)); }
+  };
+  function sfx(n) { if (SFX[n]) SFX[n](); }
+
+  /* ---------------- speech ---------------- */
+  let voice = null;
+  function pickVoice() {
+    if (!('speechSynthesis' in window)) return;
+    const vs = speechSynthesis.getVoices().filter(v => /^en(-|_)US/i.test(v.lang));
+    const pref = ['Samantha', 'Google US English', 'Microsoft Aria', 'Microsoft Jenny', 'Allison', 'Ava'];
+    voice = vs.find(v => pref.some(p => v.name.includes(p))) || vs[0] || null;
+  }
+  if ('speechSynthesis' in window) { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
+  function say(text, rate = 0.85) {
+    if (muted || !('speechSynthesis' in window) || !text) return;
+    try {
+      speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      if (voice) u.voice = voice; u.rate = rate; u.pitch = 1.05; u.lang = 'en-US';
+      speechSynthesis.speak(u);
+    } catch (e) {}
+  }
+
+  /* ---------------- helpers ---------------- */
+  const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const pick = a => a[Math.floor(Math.random() * a.length)];
+  function floatText(target, text) {
+    const r = target && target.getBoundingClientRect ? target.getBoundingClientRect() : { left: innerWidth / 2, top: innerHeight / 2, width: 0 };
+    const f = el('div', { className: 'float-coin' }, text);
+    f.style.left = (r.left + r.width / 2 - 20) + 'px'; f.style.top = (r.top) + 'px';
+    document.body.appendChild(f); setTimeout(() => f.remove(), 1000);
+  }
+  function confetti(n = 40) {
+    const bits = ['🎉', '⭐', '🪙', '✨', '🚂', '🎊'];
+    for (let i = 0; i < n; i++) {
+      const c = el('div', { className: 'confetti' }, pick(bits));
+      c.style.left = Math.random() * 100 + 'vw'; c.style.animationDuration = (1.6 + Math.random() * 1.8) + 's';
+      c.style.animationDelay = (Math.random() * .5) + 's';
+      document.body.appendChild(c); setTimeout(() => c.remove(), 4200);
+    }
+  }
+
+  /* ---------------- data (teacher word lists) ---------------- */
+  function rawData() {
+    const q = new URLSearchParams(location.search).get('d');
+    if (q) { try { return decodeURIComponent(escape(atob(q))); } catch (e) {} }
+    return LS.get(cfg.id + '_data', null) || (cfg.data ? cfg.data.default : '');
+  }
+  function lines() {
+    return rawData().split('\n').map(s => s.trim()).filter(s => s && !s.startsWith('#'));
+  }
+
+  /* ---------------- top bar ---------------- */
+  function bar() {
+    const b = el('header', { className: 'kit-bar' });
+    b.innerHTML = `<div class="kit-title">${cfg.emoji || '🚂'} ${cfg.title}</div>
+      <div class="kit-goal" id="kGoal"></div>
+      <div class="kit-streak" id="kStreak" title="Streak"></div>
+      <div class="kit-coins" title="Coins">🪙 <span id="kCoins">0</span></div>
+      <button class="kit-btn" id="kBreak" title="Brain break">🧘</button>
+      <button class="kit-btn" id="kMute" title="Sound on/off">🔊</button>
+      <button class="kit-btn" id="kSet" title="Teacher settings">⚙️</button>`;
+    document.body.prepend(b);
+    const pace = el('div', { className: 'kit-pace', id: 'kPace' }, '<b id="kPaceBar"></b>');
+    pace.style.display = 'none'; b.after(pace);
+    $('#kBreak').onclick = () => brainBreak();
+    $('#kMute').onclick = () => { muted = !muted; LS.set(MUTE, muted); $('#kMute').textContent = muted ? '🔇' : '🔊'; if (muted && 'speechSynthesis' in window) speechSynthesis.cancel(); };
+    $('#kMute').textContent = muted ? '🔇' : '🔊';
+    $('#kSet').onclick = openSettings;
+    drawGoal();
+  }
+  function drawGoal() {
+    const g = $('#kGoal'); if (!g) return; g.innerHTML = '';
+    for (let i = 0; i < S.goal; i++) g.appendChild(el('i', { className: i < done ? 'on' : '' }));
+  }
+  function drawCoins() { $('#kCoins').textContent = session; }
+
+  /* ---------------- overlays ---------------- */
+  function overlay(id) {
+    let o = document.getElementById(id);
+    if (!o) { o = el('div', { className: 'kit-ov', id }); o.appendChild(el('div', { className: 'kit-panel' })); document.body.appendChild(o); }
+    return o;
+  }
+  function closeOv(id) { const o = document.getElementById(id); if (o) o.classList.remove('show'); }
+
+  function start() {
+    const o = overlay('kStart'), p = o.firstChild;
+    const bank = LS.get(BANK, 0), st = LS.get(STICK, []);
+    p.innerHTML = `<div class="bb-emoji">${cfg.emoji || '🚂'}</div><h2>${cfg.title}</h2>
+      ${cfg.howTo.map(h => `<p>${h}</p>`).join('')}
+      <p><button class="say-btn" id="kHowSay" title="Read to me">🔊</button></p>
+      <p><button class="big-btn green" id="kGo">All aboard! ▶</button></p>
+      <p class="small">Long A Express bank: 🪙 ${bank} &nbsp;•&nbsp; Stickers: ${st.length}</p>
+      ${st.length ? `<div class="stickers">${st.slice(-20).join('')}</div>` : ''}`;
+    o.classList.add('show');
+    $('#kHowSay').onclick = () => { audio(); say(cfg.howTo.join(' ').replace(/<[^>]+>/g, '')); };
+    $('#kGo').onclick = () => { audio(); sfx('horn'); closeOv('kStart'); cfg.onStart && cfg.onStart(); };
+  }
+
+  /* ---------------- coins, streaks, progress ---------------- */
+  function addCoins(n, target) {
+    session += n; LS.set(BANK, LS.get(BANK, 0) + n); drawCoins();
+    if (target) floatText(target, '+' + n + ' 🪙'); sfx('coin');
+  }
+  function correct(target, coins = 1) {
+    sfx('good'); streak++;
+    let bonus = 0; if (streak === 3) bonus = 2; else if (streak === 5) bonus = 3; else if (streak > 5 && streak % 5 === 0) bonus = 5;
+    if (target && target.classList) { target.classList.remove('pop'); void target.offsetWidth; target.classList.add('pop'); }
+    addCoins(coins + bonus, target);
+    $('#kStreak').textContent = streak >= 2 ? '🔥' + streak : '';
+  }
+  function miss(target) {
+    sfx('bad'); streak = 0; $('#kStreak').textContent = '';
+    if (target && target.classList) { target.classList.remove('shake'); void target.offsetWidth; target.classList.add('shake'); }
+  }
+  /* call after each finished item; next() continues the game */
+  function itemDone(next) {
+    paceStop(); done++; drawGoal();
+    if (done >= S.goal) return finish(next);
+    if (S.breakEvery && done % S.breakEvery === 0) return brainBreak(next, true);
+    next && next();
+  }
+  function finish(next) {
+    sfx('win'); confetti(60);
+    const o = overlay('kWin'), p = o.firstChild;
+    p.innerHTML = `<div class="bb-emoji">🏁</div><h2>Station reached!</h2>
+      <p>You did all ${S.goal} turns! You earned 🪙 <b>${session}</b> coins so far today.</p>
+      <p>Tap the mystery crate!</p><div class="crate" id="kCrate">📦</div><div id="kPrize"></div>
+      <p><button class="big-btn" id="kMore">Keep playing ▶</button></p>`;
+    o.classList.add('show');
+    let opened = false;
+    $('#kCrate').onclick = () => {
+      if (opened) return; opened = true; sfx('level');
+      const prize = Math.random() < .55 ? { s: pick(STICKERS) } : { c: pick([5, 8, 10, 15]) };
+      $('#kCrate').textContent = '✨'; $('#kCrate').style.animation = 'none';
+      if (prize.s) { const st = LS.get(STICK, []); st.push(prize.s); LS.set(STICK, st);
+        $('#kPrize').innerHTML = `<p>New sticker for your collection!</p><div class="bb-emoji">${prize.s}</div>`; }
+      else { addCoins(prize.c); $('#kPrize').innerHTML = `<p>Bonus! 🪙 +${prize.c} coins!</p>`; }
+    };
+    $('#kMore').onclick = () => { closeOv('kWin'); done = 0; drawGoal(); next && next(); };
+  }
+
+  /* ---------------- pace timer (rival train) ---------------- */
+  function paceSeconds() { return S.pace === 'off' ? 0 : +S.pace; }
+  function paceStart(onTimeout) {
+    paceStop(); const secs = paceSeconds(); if (!secs || !cfg.usesPace) return;
+    const p = $('#kPace'), b = $('#kPaceBar'); p.style.display = 'block';
+    const t0 = performance.now();
+    const step = now => {
+      const f = Math.min(1, (now - t0) / (secs * 1000));
+      b.style.transform = `scaleX(${1 - f})`;
+      if (f < 1) paceRaf = requestAnimationFrame(step);
+    };
+    paceRaf = requestAnimationFrame(step);
+    paceT = setTimeout(() => { paceStop(); streak = 0; $('#kStreak').textContent = ''; onTimeout && onTimeout(); }, secs * 1000);
+  }
+  function paceStop() {
+    clearTimeout(paceT); cancelAnimationFrame(paceRaf); paceT = null;
+    const p = $('#kPace'); if (p) p.style.display = 'none';
+  }
+
+  /* ---------------- brain break ---------------- */
+  function brainBreak(next, auto) {
+    paceStop(); clearInterval(bbTimer);
+    const o = overlay('kBB'), p = o.firstChild;
+    const card = pick(BREAKS), secs = card.steam ? 32 : 30, C = 2 * Math.PI * 52;
+    p.innerHTML = `<p class="small">${auto ? 'Time for a brain break!' : 'Brain break'}</p>
+      <div class="bb-emoji">${card.e}</div><h2>${card.t}</h2><p>${card.d}</p>
+      ${card.steam ? '<div class="steam"></div>' : ''}
+      <div class="bb-ring"><svg width="120" height="120"><circle cx="60" cy="60" r="52" stroke="#e5edf5" stroke-width="12" fill="none"/>
+      <circle id="kRing" cx="60" cy="60" r="52" stroke="#2ec27e" stroke-width="12" fill="none" stroke-linecap="round"
+      stroke-dasharray="${C}" stroke-dashoffset="0"/></svg><span id="kSecs">${secs}</span></div>
+      <p><button class="big-btn ghost" id="kAnother">🔄 Different one</button>
+      <button class="big-btn green" id="kBack">I'm back! ▶</button></p>`;
+    o.classList.add('show'); sfx('chime'); say(card.t + '. ' + card.d.replace(/[^\w\s.!,'"-]/g, ''));
+    let left = secs;
+    bbTimer = setInterval(() => {
+      left--; const s = $('#kSecs'); if (!s) return clearInterval(bbTimer);
+      s.textContent = Math.max(0, left);
+      $('#kRing').setAttribute('stroke-dashoffset', C * (1 - left / secs));
+      if (left <= 3 && left > 0) sfx('tick');
+      if (left <= 0) { clearInterval(bbTimer); sfx('chime'); s.textContent = '✓'; }
+    }, 1000);
+    $('#kAnother').onclick = () => brainBreak(next, auto);
+    $('#kBack').onclick = () => { clearInterval(bbTimer); closeOv('kBB'); if ('speechSynthesis' in window) speechSynthesis.cancel(); next && next(); };
+  }
+
+  /* ---------------- settings ---------------- */
+  function opt(v, label, cur) { return `<option value="${v}" ${String(cur) === String(v) ? 'selected' : ''}>${label}</option>`; }
+  function openSettings() {
+    paceStop();
+    const o = overlay('kSetOv'), p = o.firstChild;
+    p.innerHTML = `<h2>⚙️ Teacher Settings</h2>
+      ${cfg.usesPace ? `<div class="set-row"><span>🚂 Rival train timer</span><select id="sPace">
+        ${opt('off', 'Off', S.pace)}${opt(20, '20 seconds', S.pace)}${opt(15, '15 seconds', S.pace)}${opt(10, '10 seconds', S.pace)}${opt(7, '7 seconds', S.pace)}${opt(5, '5 seconds', S.pace)}</select></div>` : ''}
+      <div class="set-row"><span>🧘 Brain break every</span><select id="sBreak">
+        ${opt(0, 'Off', S.breakEvery)}${opt(3, '3 turns', S.breakEvery)}${opt(4, '4 turns', S.breakEvery)}${opt(5, '5 turns', S.breakEvery)}${opt(6, '6 turns', S.breakEvery)}${opt(8, '8 turns', S.breakEvery)}${opt(10, '10 turns', S.breakEvery)}</select></div>
+      <div class="set-row"><span>🏁 Turns to reach the station</span><select id="sGoal">
+        ${[3, 5, 8, 10, 12, 15, 20].map(n => opt(n, n, S.goal)).join('')}</select></div>
+      ${cfg.data ? `<p class="small" style="text-align:left">${cfg.data.help}</p><textarea id="sData" spellcheck="false">${rawData().replace(/</g, '&lt;')}</textarea>
+      <p><button class="big-btn ghost" id="sReset">Reset words</button> <button class="big-btn ghost" id="sLink">🔗 Copy share link</button></p>
+      <p class="small" id="sMsg"></p>` : ''}
+      <p><button class="big-btn green" id="sSave">Save</button> <button class="big-btn ghost" id="sClose">Close</button></p>`;
+    o.classList.add('show');
+    $('#sClose').onclick = () => closeOv('kSetOv');
+    $('#sSave').onclick = () => {
+      if ($('#sPace')) S.pace = $('#sPace').value;
+      S.breakEvery = +$('#sBreak').value; S.goal = +$('#sGoal').value;
+      LS.set(cfg.id + '_settings', S);
+      let reload = false;
+      if ($('#sData')) {
+        const v = $('#sData').value.trim();
+        if (v !== rawData().trim()) { LS.set(cfg.id + '_data', v); reload = true; }
+      }
+      closeOv('kSetOv'); drawGoal();
+      if (reload) { location.href = location.pathname; }
+    };
+    if ($('#sReset')) $('#sReset').onclick = () => { $('#sData').value = cfg.data.default; $('#sMsg').textContent = 'Default words restored. Tap Save.'; };
+    if ($('#sLink')) $('#sLink').onclick = () => {
+      const enc = btoa(unescape(encodeURIComponent($('#sData').value.trim())));
+      const url = location.origin + location.pathname + '?d=' + encodeURIComponent(enc);
+      (navigator.clipboard ? navigator.clipboard.writeText(url) : Promise.reject()).then(
+        () => $('#sMsg').textContent = 'Link copied! It opens the game with these words.',
+        () => { $('#sMsg').textContent = url; });
+    };
+  }
+
+  /* ---------------- init ---------------- */
+  function init(c) {
+    cfg = c;
+    S = Object.assign({ pace: 'off', breakEvery: 5, goal: 10 }, c.defaults || {}, LS.get(c.id + '_settings', {}));
+    muted = LS.get(MUTE, false);
+    bar(); if (c.noStart) { c.onStart && c.onStart(); } else start();
+    document.addEventListener('pointerdown', audio, { once: true });
+  }
+  return { init, say, sfx, shuffle, pick, correct, miss, itemDone, addCoins, paceStart, paceStop, paceSeconds,
+           brainBreak, confetti, floatText, lines, LS, get settings() { return S; }, get streak() { return streak; } };
+})();
+
+</script>
+<script>
+const DATA = `# one word per line, chunks split with hyphens
+con-tain-ers
+ce-re-al
+lo-co-mo-tive
+an-oth-er
+rail-way
+con-tain-er
+ex-plain
+hol-i-day
+de-lay
+eight-een
+neigh-bor
+dis-play
+a-maz-ing
+pay-ment
+re-main
+yes-ter-day`;
+let items = [], chunks = [], step = 0, phase = 'climb', built = 0;
+const $ = s => document.querySelector(s);
+
+function parse() { return Kit.lines().map(l => l.split('-').map(s => s.trim()).filter(Boolean)).filter(c => c.length >= 2); }
+function next() {
+  if (!items.length) items = Kit.shuffle(parse());
+  chunks = items.pop(); step = 0; phase = 'climb'; built = 0;
+  const lad = $('#ladder'); lad.innerHTML = '';
+  for (let i = 0; i <= chunks.length; i++) lad.appendChild(document.createElement('i'));
+  const r = $('#rungs'); r.innerHTML = '';
+  for (let n = 1; n <= chunks.length; n++) {
+    const d = document.createElement('div'); d.className = 'rung word'; d.textContent = chunks.slice(0, n).join(' '); r.appendChild(d);
+  }
+  const w = document.createElement('div'); w.className = 'rung whole word'; w.textContent = chunks.join(''); r.appendChild(w);
+  $('#ctl').style.display = 'block'; $('#bonus').style.display = 'none';
+  place(); mark();
+}
+function place() {
+  const total = chunks.length + 1, tower = $('.tower').clientHeight;
+  const usable = tower - 60 - 16 - 50;
+  $('#climber').style.bottom = (16 + usable * (step / total)) + 'px';
+  [...$('#ladder').children].reverse().forEach((r, i) => r.classList.toggle('lit', i < step));
+}
+function mark() {
+  [...$('#rungs').children].forEach((r, i) => { r.classList.toggle('now', i === step); r.classList.toggle('read', i < step); });
+}
+function climb() {
+  if (phase !== 'climb') return;
+  const rows = $('#rungs').children;
+  Kit.sfx(step === rows.length - 1 ? 'level' : 'click');
+  step++; place(); mark();
+  if (step === rows.length) {
+    Kit.say(chunks.join('')); Kit.correct($('#climber'), 2);
+    setTimeout(startBonus, 900);
+  }
+}
+function startBonus() {
+  phase = 'bonus'; $('#ctl').style.display = 'none'; $('#bonus').style.display = 'block'; $('#built').textContent = '';
+  const box = $('#chips'); box.innerHTML = '';
+  Kit.shuffle(chunks.map((c, i) => ({ c, i }))).forEach(o => {
+    const b = document.createElement('button'); b.className = 'chip word'; b.textContent = o.c;
+    b.onclick = () => tapChip(b, o); box.appendChild(b);
+  });
+  Kit.paceStart(() => { phase = 'done'; $('#built').textContent = chunks.join(' '); Kit.say(chunks.join('')); setTimeout(() => Kit.itemDone(next), 1500); });
+}
+function tapChip(b, o) {
+  if (phase !== 'bonus') return;
+  if (chunks[built] === o.c && !b.classList.contains('used')) {
+    b.classList.add('used'); built++; Kit.sfx('click');
+    $('#built').textContent = chunks.slice(0, built).join('');
+    if (built === chunks.length) { phase = 'done'; Kit.paceStop(); Kit.correct($('#built'), 2); Kit.say(chunks.join('')); setTimeout(() => Kit.itemDone(next), 1200); }
+  } else Kit.miss(b);
+}
+$('#readBtn').onclick = climb;
+document.addEventListener('keydown', e => { if (e.code === 'Space' && phase === 'climb' && !document.querySelector('.kit-ov.show')) { e.preventDefault(); climb(); } });
+Kit.init({
+  id: 'longA_climb', title: 'Chunk Climb', emoji: '🧗', usesPace: true, defaults: { pace: 15, breakEvery: 4, goal: 8 },
+  howTo: ['Climb the signal tower one chunk at a time!', 'Read the glowing rung out loud. Then tap "I read it!" to climb.', 'At the top, build the word fast for bonus coins.'],
+  data: { default: DATA, help: 'One word per line. Split the chunks with hyphens, like con-tain-ers.' },
+  onStart: next
+});
+</script>
+
+</body></html>
